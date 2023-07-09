@@ -6,6 +6,7 @@
 # modification: 2023/05/28
 ########################################################################
 
+# Import Libraries
 import time
 import Sweep
 import Sweep2
@@ -25,7 +26,7 @@ LED_GREEN1 = 35
 LED_GREEN2 = 40
 PCF8574_address = 0x27                          # I2C address of the PCF8574 chip.
 PCF8574A_address = 0x3F                         # I2C address of the PCF8574A chip.
-token="Fxy6WFgoe9gFyevx1rSak9tf5iVnqQWm"
+token="Fxy6WFgoe9gFyevx1rSak9tf5iVnqQWm"        # Blynk Token
 
 # Create PCF8574 GPIO adapter.
 try:
@@ -40,7 +41,7 @@ except:
 # Create LCD, passing in MCP GPIO adapter.
 lcd = Adafruit_CharLCD(pin_rs=0, pin_e=2, pins_db=[4,5,6,7], GPIO=mcp)
 
-############# Setup ####################################################
+########################## Setup #############################
 def setup():
   GPIO.setmode(GPIO.BOARD)                       # use PHYSICAL GPIO Numbering
 
@@ -59,8 +60,7 @@ def setup():
   write(token,"v2","0")
   write(token,"v3","0")
 
-############# Capture Number Plate using Camera Sensor  ################
-
+############# Writing data to the Blynk Server  ################
 
 def write(token,pin,value):
     api_url = "https://blynk.cloud/external/api/update?token="+token+"&"+pin+"="+value
@@ -70,6 +70,8 @@ def write(token,pin,value):
         print("Value successfully updated")
     else:
         print("Could not find the device token or wrong pin format")
+
+############# Capture Number Plate using Camera Sensor  ################
 
 def image_capture():
   camera = PiCamera()
@@ -81,10 +83,8 @@ def image_capture():
   time.sleep(2)
   camera.stop_preview()
 
-# NumberPlate = Img.toText(Img1)
-# Print("Payment Processed")
+############# Phase1 - Car enters the wash #########################################
 
-############# Phase1 ####################################################
 def phase1_loop():
   GPIO.output(LED_RED1, GPIO.LOW)           # make ledRed1 output LOW
   GPIO.output(LED_RED2, GPIO.LOW)           # make ledRed2 output LOW
@@ -101,7 +101,8 @@ def phase1_loop():
   GPIO.output(LED_GREEN1, GPIO.LOW)         # make ledGreen1 output LOW
   GPIO.output(LED_RED1, GPIO.HIGH)          # make ledRed1 output HIGH
 
-############# Phase2 ####################################################
+############# Phase2 - Car Alignment takes place ###################################
+
 def phase2_loop():
   count = 0
   while True:
@@ -128,7 +129,8 @@ def phase2_loop():
 
   print ("Begin Washing")
 
-############# Phase3 ####################################################
+############# Phase3 - Washing, Drying and Car exits the wash #######################
+
 def phase3_loop():
 
   write(token,"v2","0")
@@ -171,17 +173,20 @@ def phase3_loop():
   time.sleep(10)
 
 ############# Write On LCD ####################################################
+
 def writeLCD(message):
   lcd.clear()
   lcd.setCursor(0,0)
   lcd.message(message)
 
 ############# Destroy ####################################################
+
 def destroy():
   lcd.clear()
   GPIO.cleanup()                                # Release all GPIO
 
 ############# Main Function ##############################################
+
 if __name__ == '__main__':                      # Program entrance
   print ('Program is starting ... \n')
   setup()
